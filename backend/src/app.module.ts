@@ -3,6 +3,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AuthModule } from './auth/auth.module';
+import { OrdersModule } from './orders/orders.module';
+import { DriversModule } from './drivers/drivers.module';
 import { User } from './entities/user.entity';
 import { Driver } from './entities/driver.entity';
 import { Order } from './entities/order.entity';
@@ -25,6 +28,9 @@ import { LocationHistory } from './entities/location-history.entity';
       synchronize: true, // Set to false in production
       logging: true,
     }),
+    AuthModule,
+    OrdersModule,
+    DriversModule,
   ],
   controllers: [AppController],
   providers: [AppService],
