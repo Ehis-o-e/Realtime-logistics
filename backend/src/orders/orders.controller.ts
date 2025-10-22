@@ -48,6 +48,7 @@ export class OrdersController {
   }
 
   @Patch(':id/assign-driver')
+  @UseGuards(AuthGuard('jwt'))
   async assignDriver(@Param('id') id: string, @Body('driverId') driverId: string) {
     return this.ordersService.assignDriver(id, driverId);
   }

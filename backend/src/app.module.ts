@@ -6,6 +6,8 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { OrdersModule } from './orders/orders.module';
 import { DriversModule } from './drivers/drivers.module';
+import { WebSocketModule } from './websocket/websocket.module';
+import { DebugModule } from './debug/debug.module';
 import { User } from './entities/user.entity';
 import { Driver } from './entities/driver.entity';
 import { Order } from './entities/order.entity';
@@ -31,6 +33,8 @@ import { LocationHistory } from './entities/location-history.entity';
     AuthModule,
     OrdersModule,
     DriversModule,
+    WebSocketModule,
+    DebugModule,
   ],
   controllers: [AppController],
   providers: [AppService],

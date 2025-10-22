@@ -35,11 +35,9 @@ export class DriversController {
   @UseGuards(AuthGuard('jwt'))
   async updateLocation(
     @Request() req,
-    @Body() body: { lat: number; lng: number; orderId?: string },
+    @Body() body: { driverId: string; lat: number; lng: number; orderId?: string },
   ) {
-    // Get driver ID from user
-    const driver = await this.driversService.getDriver(req.user.id);
-    return this.driversService.updateLocation(driver.id, body.lat, body.lng, body.orderId);
+    return this.driversService.updateLocation(body.driverId, body.lat, body.lng, body.orderId);
   }
 
   @Patch(':id/availability')

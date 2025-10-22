@@ -77,9 +77,6 @@ importers:
       twilio:
         specifier: ^5.10.2
         version: 5.10.2
-      typeorm:
-        specifier: ^0.3.27
-        version: 0.3.27(pg@8.16.3)(redis@5.8.3)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@22.18.8)(typescript@5.9.3))
     devDependencies:
       '@eslint/eslintrc':
         specifier: ^3.2.0
@@ -150,6 +147,9 @@ importers:
       tsconfig-paths:
         specifier: ^4.2.0
         version: 4.2.0
+      typeorm:
+        specifier: ^0.3.27
+        version: 0.3.27(pg@8.16.3)(redis@5.8.3)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@22.18.8)(typescript@5.9.3))
       typescript:
         specifier: ^5.7.3
         version: 5.9.3
