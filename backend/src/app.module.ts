@@ -8,6 +8,7 @@ import { OrdersModule } from './orders/orders.module';
 import { DriversModule } from './drivers/drivers.module';
 import { WebSocketModule } from './websocket/websocket.module';
 import { DebugModule } from './debug/debug.module';
+import { PaymentsModule } from './payments/payments.module';
 import { User } from './entities/user.entity';
 import { Driver } from './entities/driver.entity';
 import { Order } from './entities/order.entity';

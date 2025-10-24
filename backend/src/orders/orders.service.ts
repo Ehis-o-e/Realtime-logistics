@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, ForbiddenException, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Order, OrderStatus } from '../entities/order.entity';
@@ -6,6 +6,7 @@ import { Driver } from '../entities/driver.entity';
 import { User, UserRole } from '../entities/user.entity';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
+import { PaymentsService } from '../payments/payments.service';
 import axios from 'axios';
 
 @Injectable()
@@ -15,6 +16,8 @@ export class OrdersService {
     private orderRepository: Repository<Order>,
     @InjectRepository(Driver)
     private driverRepository: Repository<Driver>,
+    @Inject(forwardRef(() => PaymentsService))
+    private paymentsService: PaymentsService,
   ) {}
 
   async createOrder(customerId: string, createOrderDto: CreateOrderDto) {
@@ -37,7 +40,14 @@ export class OrdersService {
       status: OrderStatus.CREATED,
     });
 
-    return this.orderRepository.save(order);
+    const savedOrder = await this.orderRepository.save(order);
+
+    const paymentIntent = await this.paymentsService.createPaymentIntent(savedOrder.id);
+
+    return {
+      order: savedOrder,
+      payment: paymentIntent,
+    };
   }
 
   async getOrderById(orderId: string, userId: string, userRole: UserRole) {
