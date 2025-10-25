@@ -28,7 +28,7 @@ import { LocationHistory } from './entities/location-history.entity';
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME,
       entities: [User, Driver, Order, Payment, LocationHistory],
-      synchronize: true, // Set to false in production
+      synchronize: false, // Set to false in production
       logging: true,
     }),
     AuthModule,
