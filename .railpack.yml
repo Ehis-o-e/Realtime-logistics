@@ -1,12 +1,13 @@
+packages:
+  - node@22
+
 build:
-  packages:
-    - node@22
-  workdir: ./backend
-  install:
+  commands:
     - npm install -g pnpm
     - pnpm install --frozen-lockfile
-  build: pnpm run build
+    - pnpm run build
+  workdir: ./backend
 
 start:
-  workdir: ./backend
   command: pnpm run start
+  workdir: ./backend
