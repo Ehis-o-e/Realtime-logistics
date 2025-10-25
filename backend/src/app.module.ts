@@ -22,7 +22,7 @@ import { LocationHistory } from './entities/location-history.entity';
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: process.env.DATABASE_HOST,
+      url: process.env.DATABASE_URL,
       port: parseInt(process.env.DATABASE_PORT!, 10),
       username: process.env.DATABASE_USER,
       password: process.env.DATABASE_PASSWORD,
