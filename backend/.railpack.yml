@@ -1,8 +1,0 @@
-build:
-  packages:
-    - node@22
-    - pnpm@9
-  install: pnpm install --frozen-lockfile
-  build: pnpm run build
-start:
-  command: pnpm run start
