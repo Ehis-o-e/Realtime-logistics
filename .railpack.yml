@@ -1,8 +1,12 @@
 build:
   packages:
     - node@22
-    - pnpm@9
-  install: pnpm install --frozen-lockfile
+  workdir: ./backend
+  install:
+    - npm install -g pnpm
+    - pnpm install --frozen-lockfile
   build: pnpm run build
+
 start:
+  workdir: ./backend
   command: pnpm run start
