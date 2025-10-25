@@ -1,11 +1,14 @@
 [phases.setup]
-nixPkgs = ['nodejs_20', 'pnpm']
+nixPkgs = ['nodejs_20']
 
 [phases.install]
-cmds = ['pnpm install --frozen-lockfile']
+cmds = [
+  'npm install -g pnpm@8',
+  'pnpm install'
+]
 
 [phases.build]
 cmds = ['pnpm run build']
 
 [start]
-cmd = 'pnpm run start:prod'
+cmd = 'node dist/main.js'
