@@ -1,0 +1,10 @@
+region: europe-west4
+
+build:
+  - curl -fsSL https://get.pnpm.io/install.sh | sh -
+  - export PATH="$HOME/.local/share/pnpm:$PATH"
+  - pnpm install
+  - pnpm run build
+
+deploy:
+  - pnpm run start
