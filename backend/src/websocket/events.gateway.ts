@@ -13,32 +13,34 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Order } from '../entities/order.entity';
 import { LocationHistory } from '../entities/location-history.entity';
+import { CacheService } from '../cache/cache.service';
 
 @WebSocketGateway({
-    cors: {
-        origin: process.env.FRONTEND_URL || 'http://localhost:3001',
-        credentials: true,
-    },
+  cors: {
+    origin: process.env.FRONTEND_URL || 'http://localhost:3001',
+    credentials: true,
+  },
 })
 @Injectable()
 export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
-    @WebSocketServer()
-    server: Server;
+  @WebSocketServer()
+  server: Server;
 
-    private connectedUsers = new Map<string, string>();
+  private connectedUsers = new Map<string, string>(); // userId -> socketId
 
-    constructor(
+  constructor(
     @InjectRepository(Order)
     private orderRepository: Repository<Order>,
     @InjectRepository(LocationHistory)
     private locationHistoryRepository: Repository<LocationHistory>,
-    ){}
+    private cacheService: CacheService,
+  ) {}
 
-    handleConnection(client: Socket) {
+  handleConnection(client: Socket) {
     console.log(`Client connected: ${client.id}`);
-    }
+  }
 
-    handleDisconnect(client: Socket) {
+  handleDisconnect(client: Socket) {
     console.log(`Client disconnected: ${client.id}`);
     // Remove user from connected users
     this.connectedUsers.forEach((socketId, userId) => {
@@ -67,8 +69,8 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() data: { driverId: string; orderId: string; lat: number; lng: number },
   ) {
     const { driverId, orderId, lat, lng } = data;
-    
-     // Save location history
+
+    // Save location history
     const locationHistory = this.locationHistoryRepository.create({
       driverId,
       orderId,
@@ -107,7 +109,8 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     console.log(`Status update for order ${orderId}: ${status}`);
   }
-   // Customer requests order updates
+
+  // Customer requests order updates
   @SubscribeMessage('order:subscribe')
   async handleOrderSubscribe(
     @ConnectedSocket() client: Socket,
@@ -139,7 +142,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-   // Broadcast to specific order room
+  // Broadcast to specific order room
   broadcastToOrder(orderId: string, event: string, data: any) {
     const roomName = `order:${orderId}`;
     this.server.to(roomName).emit(event, data);

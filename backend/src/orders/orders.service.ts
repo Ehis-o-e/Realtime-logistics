@@ -7,6 +7,7 @@ import { User, UserRole } from '../entities/user.entity';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { PaymentsService } from '../payments/payments.service';
+import { CacheService } from '../cache/cache.service';
 import axios from 'axios';
 
 @Injectable()
@@ -18,6 +19,7 @@ export class OrdersService {
     private driverRepository: Repository<Driver>,
     @Inject(forwardRef(() => PaymentsService))
     private paymentsService: PaymentsService,
+    private cacheService: CacheService,
   ) {}
 
   async createOrder(customerId: string, createOrderDto: CreateOrderDto) {
@@ -51,15 +53,23 @@ export class OrdersService {
   }
 
   async getOrderById(orderId: string, userId: string, userRole: UserRole) {
-    const order = await this.orderRepository.findOne({
-      where: { id: orderId },
-      relations: ['customer', 'driver', 'driver.user'],
-    });
+    let order = await this.cacheService.getCachedOrder(orderId);
+    
+    if (order) {
+      console.log(`Cache HIT - Order ${orderId}`);
+    } else {
+      console.log(`Cache MISS - Querying order ${orderId}`);
+      order = await this.orderRepository.findOne({
+        where: { id: orderId },
+        relations: ['customer', 'driver', 'driver.user'],
+      });
 
     if (!order) {
       throw new NotFoundException('Order not found');
     }
 
+    await this.cacheService.cacheOrder(orderId, order);
+    }
     // Check authorization
     if (
       userRole !== UserRole.ADMIN &&
@@ -131,8 +141,16 @@ export class OrdersService {
     order.driverId = driverId;
     order.status = OrderStatus.ASSIGNED;
 
-    return this.orderRepository.save(order);
+     const savedOrder = await this.orderRepository.save(order);
+
+    //invalidate cache
+    await this.cacheService.del(`order:${orderId}`);
+    await this.cacheService.del('drivers:available');
+    console.log(`🗑️ Cleared cache for order ${orderId} and available drivers`);
+
+    return savedOrder;
   }
+  
 
   private async calculateDistance(
     lat1: number,

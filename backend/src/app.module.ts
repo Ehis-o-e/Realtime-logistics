@@ -9,6 +9,7 @@ import { DriversModule } from './drivers/drivers.module';
 import { WebSocketModule } from './websocket/websocket.module';
 import { DebugModule } from './debug/debug.module';
 import { PaymentsModule } from './payments/payments.module';
+import { CacheModule } from './cache/cache.module';
 import { User } from './entities/user.entity';
 import { Driver } from './entities/driver.entity';
 import { Order } from './entities/order.entity';
@@ -22,20 +23,27 @@ import { LocationHistory } from './entities/location-history.entity';
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',
-      url: process.env.DATABASE_URL,
-      port: parseInt(process.env.DATABASE_PORT!, 10),
-      username: process.env.DATABASE_USER,
-      password: process.env.DATABASE_PASSWORD,
-      database: process.env.DATABASE_NAME,
+      ...(process.env.DATABASE_URL
+        ? { url: process.env.DATABASE_URL }
+        : {
+            host: process.env.DATABASE_HOST,
+            port: parseInt(process.env.DATABASE_PORT!, 10),
+            username: process.env.DATABASE_USER,
+            password: process.env.DATABASE_PASSWORD,
+            database: process.env.DATABASE_NAME,
+          }),
       entities: [User, Driver, Order, Payment, LocationHistory],
-      synchronize: false, // Set to false in production
-      logging: true,
+      synchronize: process.env.NODE_ENV !== 'production',
+      logging: false,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
     }),
+    CacheModule,
     AuthModule,
     OrdersModule,
     DriversModule,
     WebSocketModule,
     DebugModule,
+    PaymentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

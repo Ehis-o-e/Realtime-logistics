@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Driver } from '../entities/driver.entity';
 import { Order, OrderStatus } from '../entities/order.entity';
 import { LocationHistory } from '../entities/location-history.entity';
+import { CacheService } from '../cache/cache.service';
 
 @Injectable()
 export class DriversService {
@@ -14,13 +15,25 @@ export class DriversService {
     private orderRepository: Repository<Order>,
     @InjectRepository(LocationHistory)
     private locationHistoryRepository: Repository<LocationHistory>,
+    private cacheService: CacheService,
   ) {}
 
   async getAvailableDrivers() {
-    return this.driverRepository.find({
+
+    const cached = await this.cacheService.getCachedAvailableDrivers();
+    if (cached) {
+      console.log('Returning cached available drivers');
+      return cached; 
+    }
+
+    const drivers = await this.driverRepository.find({
       where: { isAvailable: true },
       relations: ['user'],
     });
+
+    await this.cacheService.cacheAvailableDrivers(drivers);
+
+    return drivers;
   }
 
   async getDriver(driverId: string) {
