@@ -8,13 +8,17 @@ export class CacheService implements OnModuleInit {
 
   constructor(private configService: ConfigService) {}
 
-  async onModuleInit() {
-    this.client = createClient({
-      socket: {
-        host: this.configService.get<string>('REDIS_HOST'),
-        port: this.configService.get<number>('REDIS_PORT'),
-      },
-    });
+ async onModuleInit() {
+    const redisUrl = this.configService.get<string>('REDIS_URL'); 
+
+    this.client = redisUrl
+      ? createClient({ url: redisUrl })
+      : createClient({
+          socket: {
+            host: this.configService.get<string>('REDIS_HOST'),
+            port: this.configService.get<number>('REDIS_PORT'),
+          },
+        });
 
     this.client.on('error', (err) => console.error('Redis Client Error', err));
     await this.client.connect();
