@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useSocket } from '@/lib/useSocket';
 import dynamic from 'next/dynamic';
+import api from '@/lib/api';
 
 const MapContainer = dynamic(
   () => import('react-leaflet').then((mod) => mod.MapContainer),
@@ -42,6 +43,7 @@ export default function TrackOrderPage() {
   const [orderData, setOrderData] = useState<OrderData | null>(null);
   const [driverLocation, setDriverLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [orderStatus, setOrderStatus] = useState('');
+  const [simulatingDriver, setSimulatingDriver] = useState(false);
 
   useEffect(() => {
     if (!socket || !isConnected) return;
@@ -102,6 +104,18 @@ export default function TrackOrderPage() {
     return texts[status] || status;
   };
 
+  const handleSimulateDelivery = async () => {
+    setSimulatingDriver(true);
+    try {
+      await api.post(`/debug/simulate-driver/${orderId}`);
+      alert('Driver simulation started! Watch the map.');
+    } catch (error: any) {
+      alert(error.response?.data?.message || 'Failed to start simulation');
+    } finally {
+      setSimulatingDriver(false);
+    }
+  };
+
   if (!orderData) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -137,6 +151,15 @@ export default function TrackOrderPage() {
               >
                 {getStatusText(orderStatus)}
               </div>
+              {orderStatus === 'assigned' && (
+                <button
+                  onClick={handleSimulateDelivery}
+                  disabled={simulatingDriver}
+                  className="bg-purple-600 text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-purple-700 transition disabled:opacity-50"
+                >
+                  {simulatingDriver ? 'Starting...' : '🚗 Simulate Driver'}
+                </button>
+              )}
             </div>
           </div>
         </div>
