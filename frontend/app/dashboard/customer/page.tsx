@@ -18,6 +18,7 @@ export default function CustomerDashboard() {
   const [clientSecret, setClientSecret] = useState('');
   const [currentOrder, setCurrentOrder] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [simulatingOrder, setSimulatingOrder] = useState<string | null>(null);
   
   const [formData, setFormData] = useState({
     pickupAddress: '',
@@ -42,7 +43,11 @@ export default function CustomerDashboard() {
   const fetchOrders = async () => {
     try {
       const response = await api.get('/orders');
-      setOrders(response.data);
+      // Only show paid orders (those with successful payment)
+      const paidOrders = response.data.filter((order: any) => 
+        order.status !== 'created' || order.amount > 0
+      );
+      setOrders(paidOrders);
     } catch (error) {
       console.error('Failed to fetch orders:', error);
     }
@@ -62,7 +67,6 @@ export default function CustomerDashboard() {
       setShowPayment(true);
     } catch (error: any) {
       alert(error.response?.data?.message || 'Failed to create order');
-    } finally {
       setLoading(false);
     }
   };
@@ -70,9 +74,38 @@ export default function CustomerDashboard() {
   const handlePaymentSuccess = () => {
     setShowPayment(false);
     setClientSecret('');
+    setLoading(false);
     alert('Payment successful! Your order has been created.');
-    fetchOrders();
-    router.push(`/track/${currentOrder.id}`);
+    fetchOrders(); // Refresh orders list
+  };
+
+  const handlePaymentCancel = async () => {
+    // Delete unpaid order
+    if (currentOrder) {
+      try {
+        // You might want to add a delete endpoint, or just leave it unpaid
+        console.log('Payment cancelled for order:', currentOrder.id);
+      } catch (error) {
+        console.error('Error handling cancellation:', error);
+      }
+    }
+    setShowPayment(false);
+    setClientSecret('');
+    setCurrentOrder(null);
+    setLoading(false);
+  };
+
+  const handleSimulateDelivery = async (orderId: string) => {
+    setSimulatingOrder(orderId);
+    try {
+      await api.post(`/debug/simulate-driver/${orderId}`);
+      alert('Driver simulation started! Watch the tracking page.');
+      router.push(`/track/${orderId}`);
+    } catch (error: any) {
+      alert(error.response?.data?.message || 'Failed to start simulation');
+    } finally {
+      setSimulatingOrder(null);
+    }
   };
 
   const handleLogout = () => {
@@ -150,15 +183,26 @@ export default function CustomerDashboard() {
                         <strong>To:</strong> {order.deliveryAddress}
                       </p>
                       <p className="text-lg font-semibold text-gray-900 mt-2">
-                        ${Number(order.amount).toFixed(2)}
+                        ${order.amount.toFixed(2)}
                       </p>
                     </div>
-                    <button
-                      onClick={() => router.push(`/track/${order.id}`)}
-                      className="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition"
-                    >
-                      Track Order
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => router.push(`/track/${order.id}`)}
+                        className="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition"
+                      >
+                        Track Order
+                      </button>
+                      {order.status === 'assigned' && (
+                        <button
+                          onClick={() => handleSimulateDelivery(order.id)}
+                          disabled={simulatingOrder === order.id}
+                          className="bg-purple-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-purple-700 transition disabled:opacity-50"
+                        >
+                          {simulatingOrder === order.id ? 'Starting...' : '🚗 Simulate'}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))
@@ -170,7 +214,7 @@ export default function CustomerDashboard() {
       {/* Create Order Modal */}
       {showCreateOrder && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-md w-full p-6">
+          <div className="bg-white rounded-lg max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
             <h2 className="text-2xl font-bold mb-4">Create New Order</h2>
             
             <form onSubmit={handleCreateOrder} className="space-y-4">
@@ -236,7 +280,7 @@ export default function CustomerDashboard() {
       {/* Payment Modal */}
       {showPayment && clientSecret && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-md w-full p-6">
+          <div className="bg-white rounded-lg max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
             <h2 className="text-2xl font-bold mb-4">Complete Payment</h2>
             <p className="text-gray-600 mb-6">
               Amount: <span className="text-2xl font-bold text-blue-600">${currentOrder?.amount.toFixed(2)}</span>
@@ -245,10 +289,7 @@ export default function CustomerDashboard() {
             <Elements stripe={stripePromise} options={{ clientSecret }}>
               <PaymentForm
                 onSuccess={handlePaymentSuccess}
-                onCancel={() => {
-                  setShowPayment(false);
-                  setClientSecret('');
-                }}
+                onCancel={handlePaymentCancel}
               />
             </Elements>
           </div>
