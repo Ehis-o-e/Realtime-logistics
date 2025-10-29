@@ -124,20 +124,20 @@ export default function DriverDashboard() {
           </div>
           <div className="flex gap-3">
             {driver && (
-              <button
+             <button
                 onClick={handleToggleAvailability}
-                disabled={loading}
+                disabled={loading || !driver}
                 className={`px-6 py-2 rounded-lg font-semibold transition ${
-                  driver.isAvailable
+                  driver?.isAvailable
                     ? 'bg-green-600 text-white hover:bg-green-700'
                     : 'bg-gray-400 text-white hover:bg-gray-500'
                 }`}
               >
                 {loading
                   ? 'Updating...'
-                  : driver.isAvailable
-                  ? '✅ Available (Click to Go Offline)'
-                  : '⏸️ Unavailable (Click to Go Online)'}
+                  : driver?.isAvailable
+                  ? '✅ Available'
+                  : '⏸️ Unavailable'}
               </button>
             )}
             <button
