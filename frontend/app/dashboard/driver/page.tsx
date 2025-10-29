@@ -27,7 +27,6 @@ export default function DriverDashboard() {
     try {
       const response = await api.get('/drivers/available');
       const drivers = response.data;
-      // Find current driver
       const userData = JSON.parse(localStorage.getItem('user')!);
       const currentDriver = drivers.find((d: any) => d.userId === userData.id);
       setDriver(currentDriver);
@@ -45,6 +44,27 @@ export default function DriverDashboard() {
     }
   };
 
+  // ✅ Fixed toggle availability function
+  const handleToggleAvailability = async () => {
+    if (!driver) return;
+    setLoading(true);
+
+    try {
+      const res = await api.patch(`/drivers/${driver.id}`, {
+        isAvailable: !driver.isAvailable,
+      });
+
+      // Update driver state with response
+      setDriver(res.data);
+      alert(`You are now ${res.data.isAvailable ? 'online ✅' : 'offline ⏸️'}`);
+    } catch (error) {
+      console.error('Failed to toggle availability:', error);
+      alert('Error updating driver availability');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleUpdateStatus = async (orderId: string, newStatus: string) => {
     setLoading(true);
     try {
@@ -53,22 +73,6 @@ export default function DriverDashboard() {
       fetchOrders();
     } catch (error: any) {
       alert(error.response?.data?.message || 'Failed to update status');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleToggleAvailability = async () => {
-    if (!driver) return;
-    setLoading(true);
-    try {
-      await api.patch(`/drivers/availability`, {
-        available: !driver.isAvailable,
-      });
-      alert('Availability updated!');
-      fetchDriverData();
-    } catch (error: any) {
-      alert(error.response?.data?.message || 'Failed to update availability');
     } finally {
       setLoading(false);
     }
@@ -129,7 +133,11 @@ export default function DriverDashboard() {
                     : 'bg-gray-400 text-white hover:bg-gray-500'
                 }`}
               >
-                {driver.isAvailable ? '✅ Available' : '⏸️ Unavailable'}
+                {loading
+                  ? 'Updating...'
+                  : driver.isAvailable
+                  ? '✅ Available (Click to Go Offline)'
+                  : '⏸️ Unavailable (Click to Go Online)'}
               </button>
             )}
             <button
@@ -152,7 +160,9 @@ export default function DriverDashboard() {
           <div className="bg-white rounded-lg shadow p-6">
             <p className="text-sm text-gray-500">Active</p>
             <p className="text-3xl font-bold text-blue-600">
-              {orders.filter((o) => ['assigned', 'picked_up', 'in_transit'].includes(o.status)).length}
+              {orders.filter((o) =>
+                ['assigned', 'picked_up', 'in_transit'].includes(o.status)
+              ).length}
             </p>
           </div>
           <div className="bg-white rounded-lg shadow p-6">
@@ -163,7 +173,11 @@ export default function DriverDashboard() {
           </div>
           <div className="bg-white rounded-lg shadow p-6">
             <p className="text-sm text-gray-500">Status</p>
-            <p className={`text-xl font-bold ${driver?.isAvailable ? 'text-green-600' : 'text-gray-400'}`}>
+            <p
+              className={`text-xl font-bold ${
+                driver?.isAvailable ? 'text-green-600' : 'text-gray-400'
+              }`}
+            >
               {driver?.isAvailable ? 'Available' : 'Offline'}
             </p>
           </div>
@@ -177,14 +191,20 @@ export default function DriverDashboard() {
 
           <div className="divide-y">
             {orders.length === 0 ? (
-              <div className="p-8 text-center text-gray-500">No orders assigned yet.</div>
+              <div className="p-8 text-center text-gray-500">
+                No orders assigned yet.
+              </div>
             ) : (
               orders.map((order) => (
                 <div key={order.id} className="p-6 hover:bg-gray-50 transition">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-3">
-                        <span className={`${getStatusColor(order.status)} text-white px-3 py-1 rounded-full text-xs font-semibold`}>
+                        <span
+                          className={`${getStatusColor(
+                            order.status
+                          )} text-white px-3 py-1 rounded-full text-xs font-semibold`}
+                        >
                           {order.status.replace('_', ' ').toUpperCase()}
                         </span>
                         <span className="text-sm text-gray-500">
@@ -195,11 +215,15 @@ export default function DriverDashboard() {
                       <div className="space-y-2">
                         <div>
                           <p className="text-xs text-gray-500">📍 Pickup</p>
-                          <p className="text-sm font-medium">{order.pickupAddress}</p>
+                          <p className="text-sm font-medium">
+                            {order.pickupAddress}
+                          </p>
                         </div>
                         <div>
                           <p className="text-xs text-gray-500">🎯 Delivery</p>
-                          <p className="text-sm font-medium">{order.deliveryAddress}</p>
+                          <p className="text-sm font-medium">
+                            {order.deliveryAddress}
+                          </p>
                         </div>
                         {order.notes && (
                           <div>
@@ -216,15 +240,22 @@ export default function DriverDashboard() {
                     </div>
 
                     <div className="flex flex-col gap-2 ml-4">
-                      {order.status !== 'delivered' && order.status !== 'cancelled' && getNextStatus(order.status) && (
-                        <button
-                          onClick={() => handleUpdateStatus(order.id, getNextStatus(order.status))}
-                          disabled={loading}
-                          className="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50 whitespace-nowrap"
-                        >
-                          {getStatusLabel(order.status)}
-                        </button>
-                      )}
+                      {order.status !== 'delivered' &&
+                        order.status !== 'cancelled' &&
+                        getNextStatus(order.status) && (
+                          <button
+                            onClick={() =>
+                              handleUpdateStatus(
+                                order.id,
+                                getNextStatus(order.status)
+                              )
+                            }
+                            disabled={loading}
+                            className="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50 whitespace-nowrap"
+                          >
+                            {getStatusLabel(order.status)}
+                          </button>
+                        )}
                       <button
                         onClick={() => router.push(`/track/${order.id}`)}
                         className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg font-semibold hover:bg-gray-300 transition whitespace-nowrap"

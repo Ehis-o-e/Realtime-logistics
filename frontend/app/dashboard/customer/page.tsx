@@ -183,7 +183,7 @@ export default function CustomerDashboard() {
                         <strong>To:</strong> {order.deliveryAddress}
                       </p>
                       <p className="text-lg font-semibold text-gray-900 mt-2">
-                        ${order.amount.toFixed(2)}
+                        ${Number(order.amount).toFixed(2)}
                       </p>
                     </div>
                     <div className="flex gap-2">
@@ -283,7 +283,7 @@ export default function CustomerDashboard() {
           <div className="bg-white rounded-lg max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
             <h2 className="text-2xl font-bold mb-4">Complete Payment</h2>
             <p className="text-gray-600 mb-6">
-              Amount: <span className="text-2xl font-bold text-blue-600">${currentOrder?.amount.toFixed(2)}</span>
+              Amount: <span className="text-2xl font-bold text-blue-600">${Number(currentOrder?.amount).toFixed(2)}</span>
             </p>
             
             <Elements stripe={stripePromise} options={{ clientSecret }}>
