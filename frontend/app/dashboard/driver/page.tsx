@@ -28,7 +28,8 @@ export default function DriverDashboard() {
       const response = await api.get('/drivers/available');
       const drivers = response.data;
       // Find current driver
-      const currentDriver = drivers.find((d: any) => d.user.id === JSON.parse(localStorage.getItem('user')!).id);
+      const userData = JSON.parse(localStorage.getItem('user')!);
+      const currentDriver = drivers.find((d: any) => d.userId === userData.id);
       setDriver(currentDriver);
     } catch (error) {
       console.error('Failed to fetch driver data:', error);
@@ -208,7 +209,7 @@ export default function DriverDashboard() {
                         )}
                         <div>
                           <p className="text-lg font-semibold text-gray-900 mt-2">
-                            ${order.amount.toFixed(2)}
+                            ${Number(order.amount).toFixed(2)}
                           </p>
                         </div>
                       </div>

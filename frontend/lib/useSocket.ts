@@ -11,7 +11,7 @@ export function useSocket() {
         });
 
         socketInstance.on('connect', () => {
-            console.log('Websocket cocnnected: ', socketInstance.id);
+            console.log('Websocket connected: ', socketInstance.id);
             setIsConnected(true);
         });
 

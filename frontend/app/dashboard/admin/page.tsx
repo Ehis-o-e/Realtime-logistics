@@ -182,7 +182,7 @@ export default function AdminDashboard() {
                     <td className="px-6 py-4 text-sm">{order.customer?.name || 'N/A'}</td>
                     <td className="px-6 py-4 text-sm">{order.pickupAddress}</td>
                     <td className="px-6 py-4 text-sm">{order.deliveryAddress}</td>
-                    <td className="px-6 py-4 text-sm font-semibold">${order.amount.toFixed(2)}</td>
+                    <td className="px-6 py-4 text-sm font-semibold">${Number(order.amount).toFixed(2)}</td>
                     <td className="px-6 py-4">
                       <div className="flex gap-2">
                         {order.status === 'created' && (

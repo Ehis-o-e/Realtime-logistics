@@ -13,7 +13,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Order } from '../entities/order.entity';
 import { LocationHistory } from '../entities/location-history.entity';
-import { CacheService } from '../cache/cache.service';
 
 @WebSocketGateway({
   cors: {
@@ -33,7 +32,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private orderRepository: Repository<Order>,
     @InjectRepository(LocationHistory)
     private locationHistoryRepository: Repository<LocationHistory>,
-    private cacheService: CacheService,
+    
   ) {}
 
   handleConnection(client: Socket) {

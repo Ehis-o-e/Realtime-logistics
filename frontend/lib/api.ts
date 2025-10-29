@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+//Connects to the backend API
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
   headers: {
@@ -8,7 +9,9 @@ const api = axios.create({
 });
 
 // Add token to requests if it exists
-api.interceptors.request.use((config) => {
+api.interceptors.request.use((config) => 
+{
+  //Check if token exists in localStorage
   const token = localStorage.getItem('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;

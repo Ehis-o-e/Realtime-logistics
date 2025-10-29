@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, Index } from 'typeorm';
 
 @Entity('location_history')
+//@index - Index for faster queries by driverId and timestamp
 @Index(['driverId', 'timestamp'])
 export class LocationHistory {
   @PrimaryGeneratedColumn('uuid')
