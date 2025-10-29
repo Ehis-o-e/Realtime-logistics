@@ -40,7 +40,7 @@ export class DriversController {
     return this.driversService.updateLocation(body.driverId, body.lat, body.lng, body.orderId);
   }
 
-  @Patch(':id/availability')
+  @Patch('availability')
   @UseGuards(AuthGuard('jwt'))
   async toggleAvailability(
     @Param('id') id: string,

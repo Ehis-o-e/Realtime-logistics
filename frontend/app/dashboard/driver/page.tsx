@@ -62,7 +62,7 @@ export default function DriverDashboard() {
     if (!driver) return;
     setLoading(true);
     try {
-      await api.patch(`/drivers/${driver.id}/availability`, {
+      await api.patch(`/drivers/availability`, {
         available: !driver.isAvailable,
       });
       alert('Availability updated!');
