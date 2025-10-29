@@ -8,30 +8,21 @@ export class CacheService implements OnModuleInit {
 
   constructor(private configService: ConfigService) {}
 
-  async onModuleInit() {
-    const redisUrl = this.configService.get<string>('REDIS_URL');
-    const host = this.configService.get<string>('REDIS_HOST');
-    const port = this.configService.get<number>('REDIS_PORT');
+ async onModuleInit() {
+    const redisUrl = this.configService.get<string>('REDIS_URL'); 
 
-    console.log('🔍 Redis config:', { redisUrl, host, port });
+    this.client = redisUrl
+      ? createClient({ url: redisUrl })
+      : createClient({
+          socket: {
+            host: this.configService.get<string>('REDIS_HOST'),
+            port: this.configService.get<number>('REDIS_PORT'),
+          },
+        });
 
-    try {
-      this.client = redisUrl
-        ? createClient({ url: redisUrl }) 
-        : createClient({
-            socket: {
-              host: host || 'localhost', 
-              port: port || 6379,
-            },
-          });
-
-      this.client.on('error', (err) => console.error('❌ Redis Client Error:', err));
-
-      await this.client.connect();
-      console.log('✅ Redis connected');
-    } catch (error) {
-      console.error('🚨 Redis connection failed:', error);
-    }
+    this.client.on('error', (err) => console.error('Redis Client Error', err));
+    await this.client.connect();
+    console.log('Redis connected');
   }
 
   async get(key: string): Promise<string | null> {
@@ -83,7 +74,7 @@ export class CacheService implements OnModuleInit {
 
   // Cache driver location for quick access
   async cacheDriverLocation(driverId: string, lat: number, lng: number): Promise<void> {
-    await this.setJSON(`driver:location:${driverId}`, { lat, lng }, 300);
+    await this.setJSON(`driver:location:${driverId}`, { lat, lng }, 300); // 5 min TTL
   }
 
   async getDriverLocation(driverId: string): Promise<{ lat: number; lng: number } | null> {
@@ -92,7 +83,7 @@ export class CacheService implements OnModuleInit {
 
   // Cache order details for tracking page
   async cacheOrder(orderId: string, orderData: any): Promise<void> {
-    await this.setJSON(`order:${orderId}`, orderData, 600); 
+    await this.setJSON(`order:${orderId}`, orderData, 600); // 10 min TTL
   }
 
   async getCachedOrder(orderId: string): Promise<any> {
@@ -101,7 +92,7 @@ export class CacheService implements OnModuleInit {
 
   // Cache available drivers
   async cacheAvailableDrivers(drivers: any[]): Promise<void> {
-    await this.setJSON('drivers:available', drivers, 60); 
+    await this.setJSON('drivers:available', drivers, 60); // 1 min TTL
   }
 
   async getCachedAvailableDrivers(): Promise<any[] | null> {

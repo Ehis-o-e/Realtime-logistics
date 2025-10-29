@@ -44,6 +44,9 @@ export class OrdersService {
 
     const savedOrder = await this.orderRepository.save(order);
 
+    await this.cacheService.cacheOrder(savedOrder.id, savedOrder);
+    console.log(`📦 Cached new order ${savedOrder.id}`);
+
     const paymentIntent = await this.paymentsService.createPaymentIntent(savedOrder.id);
 
     return {
@@ -53,6 +56,7 @@ export class OrdersService {
   }
 
   async getOrderById(orderId: string, userId: string, userRole: UserRole) {
+
     let order = await this.cacheService.getCachedOrder(orderId);
     
     if (order) {
@@ -88,7 +92,7 @@ export class OrdersService {
     if (userRole === UserRole.CUSTOMER) {
       query.where('order.customerId = :customerId', { customerId: userId });
     } else if (userRole === UserRole.DRIVER) {
-      query.where('order.driverId IN (SELECT id FROM drivers WHERE userId = :userId)', {
+      query.where('order.driverId IN (SELECT id FROM drivers WHERE "userId"= :userId)', {
         userId,
       });
     }
