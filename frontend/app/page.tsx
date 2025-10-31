@@ -17,12 +17,7 @@ export default function Home() {
           >
             Get Started
           </Link>
-          <Link 
-            href="/track/demo"
-            className="bg-transparent border-2 border-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition"
-          >
-            Track Order
-          </Link>
+          
         </div>
         
         <div className="mt-16 grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
